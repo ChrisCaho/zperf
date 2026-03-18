@@ -50,32 +50,86 @@ zperf provides a single-screen view of your entire ZFS storage stack — from RA
 
 ## Installation
 
-Copy `zperf.py` to your ZFS server:
+No pip install, no virtualenv, no dependencies. Just Python 3.8+ and a ZFS system.
+
+### Standard Linux
 
 ```bash
-scp zperf.py user@server:/usr/local/bin/zperf
-chmod +x /usr/local/bin/zperf
+sudo cp zperf.py /usr/local/bin/zperf
+sudo chmod +x /usr/local/bin/zperf
 ```
 
-No pip install, no virtualenv, no dependencies. Just Python 3.8+ and a ZFS system.
+### TrueNAS SCALE
+
+TrueNAS SCALE uses an immutable root filesystem that gets **wiped on every update**. Anything installed to `/usr/local/bin`, `/opt`, or other boot drive locations will be lost. There is no officially recommended location for custom utilities ([open feature request](https://forums.truenas.com/t/decide-and-document-where-to-install-tools-and-scripts/9388)).
+
+**Solution:** Install on a ZFS dataset, which survives reboots and updates:
+
+```bash
+# As root, create a persistent location on your pool
+mkdir -p /mnt/<yourpool>/local/bin
+cp zperf.py /mnt/<yourpool>/local/bin/zperf
+chmod +x /mnt/<yourpool>/local/bin/zperf
+```
+
+Add the path to your shell profile so you can run `zperf` by name:
+
+```bash
+# bash (~/.bashrc)
+echo 'export PATH="/mnt/<yourpool>/local/bin:$PATH"' >> ~/.bashrc
+
+# zsh (~/.zshrc)
+echo 'export PATH="/mnt/<yourpool>/local/bin:$PATH"' >> ~/.zshrc
+```
+
+**Note:** On TrueNAS SCALE, direct execution (`./zperf`) may be intercepted by the TrueNAS middleware. Use `python3 /path/to/zperf` or `sudo python3 zperf` instead.
+
+### Locking down the script
+
+zperf requires root to run (reads `/proc/spl/kstat/zfs/` and runs `zpool` commands). To allow a non-root user to run it:
+
+```bash
+# Add a passwordless sudo rule (as root)
+echo 'youruser ALL=(root) NOPASSWD: /mnt/<yourpool>/local/bin/zperf' >> /etc/sudoers.d/zperf
+```
+
+Then run as: `sudo zperf`
+
+To prevent modification by non-root users, set ownership and use ZFS immutability:
+
+```bash
+# Root-only write access
+chown root:root /mnt/<yourpool>/local/bin/zperf
+chmod 755 /mnt/<yourpool>/local/bin/zperf
+
+# ZFS immutable flag — prevents even root from modifying without first removing the flag
+chattr +i /mnt/<yourpool>/local/bin/zperf
+
+# To update later, remove immutable, replace, re-set:
+# chattr -i /mnt/<yourpool>/local/bin/zperf
+# cp new_zperf /mnt/<yourpool>/local/bin/zperf
+# chattr +i /mnt/<yourpool>/local/bin/zperf
+```
+
+The `chattr +i` (immutable) flag is enforced at the filesystem level — the file cannot be modified, renamed, deleted, or linked to until the flag is cleared. Only root can set or clear this flag.
 
 ## Usage
 
 ```bash
 # Auto-detect pool, 2s refresh
-sudo python3 zperf
+sudo zperf
 
 # Specific pool
-sudo python3 zperf jpool
+sudo zperf jpool
 
 # Custom refresh interval
-sudo python3 zperf -n 5
+sudo zperf -n 5
 
 # Start in cumulative mode
-sudo python3 zperf -c
+sudo zperf -c
 
 # All together
-sudo python3 zperf jpool -n 3 -c
+sudo zperf jpool -n 3 -c
 ```
 
 Requires root (or sudo) to read `/proc/spl/kstat/zfs/` and run `zpool` commands.

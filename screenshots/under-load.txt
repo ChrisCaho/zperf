@@ -1,0 +1,39 @@
+── zperf ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ CPU ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 9.6%   MEM ████████████████████████████░░ 238G/251G       SWAP none
+ ZFS  177 threads  CPU: 1.0%  [z_wr_iss:38 z_wr_int:32 z_fr_iss:20 z_rd_int:17 z_rd_iss:16 z_metaslab:9]
+
+── ARC (Memory Cache) [system-wide] ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ████████░░ Hit: 81%    Hits: 294K  Misses: 70.3K  ~0.08ms  vs L2: 1.9x faster  vs Disk: 122x faster
+  Size: 221G  Target: 221G  Max: 250G  Pressure: low
+  MRU: 68G  MFU: 151G  Evictions: 1194M
+  Demand Hit: 100%  Prefetch Hit: 0.4%  Pool Used: 22%  Frag: 0%
+  ARC demand reads healthy - prefetch/sequential streaming through cache
+
+── L2ARC (NVMe Cache) [system-wide] ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  █████████░ Hit: 97%    Hits: 68.1K  Misses: 2.2K  vs Disk: 63x faster
+  Size: 875G  Read: 7.8G  Written: 531M  Feeds: 20.8K  Errors: 0
+  Read Latency: 0.15ms  Write Latency: 0.13ms
+  L2ARC active - serving read hits
+
+── SLOG (Sync Write Log) ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ███░░░░░░░ Cap: 39%    Writes: 28/s  BW: 116K/s  Lat: 0.13ms  vs Disk: 10.0x faster
+  ZIL Commits: 22  ITXs: 1.1K  SLOG: 14 (61K)  Bypass: 22 (2.0M)
+  Write Amp: 1.8x  TXG Sync: 63ms  TXG Write: 0.06ms
+  SLOG underutilized - most sync writes bypassing to pool (large writes?)
+
+── Cache & Log Devices ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  DEVICE                      R_OPS      W_OPS       R_BW       W_BW     R_LAT     W_LAT    BUSY  ACTIVITY
+  nvme1n1p1 [SLOG]              0/s       14/s     0.0B/s      58K/s         -    0.15ms    0.2%  ░░░░░░░░░░░░░░░░░░░░
+  nvme2n1p1 [SLOG]              0/s       14/s     0.0B/s      58K/s         -    0.12ms    0.4%  ░░░░░░░░░░░░░░░░░░░░
+  nvme1n1p2 [L2ARC]          3.9K/s      2.1/s     476M/s     8.6K/s    0.16ms         -     50%  █████████░░░░░░░░░░░
+  nvme2n1p2 [L2ARC]          4.1K/s      1.1/s     505M/s      11K/s    0.17ms         -     48%  █████████░░░░░░░░░░░
+
+── Pool Data Devices ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  DEVICE                      R_OPS      W_OPS       R_BW       W_BW     R_LAT     W_LAT    BUSY  ACTIVITY
+  sdc1                         51/s       28/s     1.2M/s     306K/s      10ms     1.0ms     42%  ████████░░░░░░░░░░░░
+  sdd1                         56/s       27/s     1.2M/s     298K/s      11ms     1.5ms     48%  █████████░░░░░░░░░░░
+  sde1                         52/s       27/s     1.2M/s     319K/s      11ms     1.2ms     43%  ████████░░░░░░░░░░░░
+  sdf1                         53/s       26/s     1.2M/s     300K/s      10ms     2.1ms     45%  █████████░░░░░░░░░░░
+  sdg1                         53/s       27/s     1.3M/s     293K/s      11ms     1.0ms     44%  ████████░░░░░░░░░░░░
+  sdh1                         56/s       28/s     1.4M/s     298K/s     9.5ms     1.5ms     41%  ████████░░░░░░░░░░░░
+  sdi1                         49/s       28/s     1.2M/s     308K/s      10ms     1.1ms     43%  ████████░░░░░░░░░░░░

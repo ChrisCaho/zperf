@@ -84,16 +84,18 @@ echo 'export PATH="/mnt/<yourpool>/local/bin:$PATH"' >> ~/.zshrc
 
 **Note:** On TrueNAS SCALE, direct execution (`./zperf`) may be intercepted by the TrueNAS middleware. Use `python3 /path/to/zperf` or `sudo python3 zperf` instead.
 
-### Locking down the script
+### Permissions
 
-zperf requires root to run (reads `/proc/spl/kstat/zfs/` and runs `zpool` commands). To allow a non-root user to run it:
+zperf reads `/proc/spl/kstat/zfs/` and runs `zpool` commands. On standard Linux, this typically requires root. On **TrueNAS SCALE**, users in the `builtin_administrators` group already have the necessary access — no sudo needed.
+
+If your user can't access the ZFS kstats, either run with `sudo` or add a passwordless sudo rule:
 
 ```bash
 # Add a passwordless sudo rule (as root)
 echo 'youruser ALL=(root) NOPASSWD: /mnt/<yourpool>/local/bin/zperf' >> /etc/sudoers.d/zperf
 ```
 
-Then run as: `sudo zperf`
+### Locking down the script
 
 To prevent modification by non-root users, set ownership and use ZFS immutability:
 
@@ -132,7 +134,7 @@ sudo zperf -c
 sudo zperf jpool -n 3 -c
 ```
 
-Requires root (or sudo) to read `/proc/spl/kstat/zfs/` and run `zpool` commands.
+Requires access to `/proc/spl/kstat/zfs/` and `zpool` commands. On TrueNAS SCALE, `builtin_administrators` group members can run without sudo. On standard Linux, root or sudo is typically needed.
 
 ## Interactive Controls
 
